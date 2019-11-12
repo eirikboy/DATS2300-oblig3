@@ -66,6 +66,7 @@ public class ObligSBinTre<T> implements Beholder<T>
     else q.høyre = p;                        // høyre barn til q
 
     antall++;                                // én verdi mer i treet
+    endringer++;
     return true;                             // vellykket innlegging
   }
   
@@ -134,6 +135,7 @@ public class ObligSBinTre<T> implements Beholder<T>
     }
 
     antall--;   // det er nå én node mindre i treet
+    endringer++;
     return true;
   }
   
@@ -199,10 +201,11 @@ public class ObligSBinTre<T> implements Beholder<T>
       nullstill(rot);
       rot = null;
       antall = 0;
+      endringer++;
     }
   }
 
-  public void nullstill(Node<T> p ){
+  public void nullstill(Node<T> p){
     if (p.venstre != null){
       nullstill(p.venstre);
       p.venstre = null;
@@ -288,27 +291,193 @@ public class ObligSBinTre<T> implements Beholder<T>
   }
   
   public String høyreGren() {
-    throw new UnsupportedOperationException("Ikke kodet ennå!");
+    StringBuilder builder = new StringBuilder();
+    builder.append("[");
+    Node<T> current = rot;
+    if(antall != 0) {
+      while(true) {
+        builder.append(current.verdi);
+        if (current.høyre != null) {
+          current = current.høyre;
+          builder.append(", ");
+        } else if (current.venstre != null) {
+          current = current.venstre;
+          builder.append(", ");
+        } else {
+          break;
+        }
+      }
+    }
+    builder.append("]");
+    return builder.toString();
   }
   
-  public String lengstGren()
-  {
-    throw new UnsupportedOperationException("Ikke kodet ennå!");
+  public String lengstGren() {
+    if(rot == null) {
+      return "[]";
+    }
+    int[] max = new int[1];
+    max[0] = 0;
+    List<Node<T>> størst = new ArrayList<>();
+    størst.add(rot);
+    finnStørsteSti(rot, max, størst);
+    return finnNodeSti(størst.remove(0));
+  }
+
+  private int finnHøyde(Node<T> node) {
+    int høyde = 0;
+    while(node.forelder != null) {
+      node = node.forelder;
+      høyde++;
+    }
+    return høyde;
+  }
+
+  private void finnStørsteSti(Node<T> node, int[] maxhøyde, List<Node<T>> current) {
+    if(node == null)
+      return;
+    else if(node.venstre == null && node.høyre == null) {
+      if(maxhøyde[0] < finnHøyde(node)) {
+        current.remove(0);
+        current.add(node);
+        maxhøyde[0] = finnHøyde(node);
+      }
+    }
+    else {
+      finnStørsteSti(node.venstre, maxhøyde, current);
+      finnStørsteSti(node.høyre, maxhøyde, current);
+    }
+  }
+
+
+  private int antallBladNoder(Node<T> node) {
+    if(node == null)
+      return 0;
+    else if(node.venstre == null && node.høyre == null)
+      return 1;
+    else
+      return antallBladNoder(node.venstre) + antallBladNoder(node.høyre);
+  }
+
+  private void gå(Node<T> node, String[] list, int[] number) {
+    if(node.venstre == null && node.høyre == null) {
+      list[number[0]] = finnNodeSti(node);
+      number[0]++;
+      return;
+    }
+    gåVenstre(node, list, number);
+    gåHøyre(node, list, number);
+  }
+
+  private void gåVenstre(Node<T> node, String[] list, int[] number) {
+    if(node.venstre != null) {
+      gå(node.venstre, list, number);
+    }
+  }
+
+  private void gåHøyre(Node<T> node, String[] list, int[] number) {
+    if(node.høyre != null) {
+      gå(node.høyre, list, number);
+    }
+  }
+
+  private String finnNodeSti(Node<T> node) {
+    StringBuilder builder = new StringBuilder();
+
+    Stakk<T> stakk = new TabellStakk<>();
+    while(node != null) {
+      stakk.leggInn(node.verdi);
+      node = node.forelder;
+    }
+    builder.append("[");
+    builder.append(stakk.taUt());
+    while(!stakk.tom())
+      builder.append(", " + stakk.taUt());
+
+    builder.append("]");
+    return builder.toString();
   }
   
   public String[] grener()
   {
-    throw new UnsupportedOperationException("Ikke kodet ennå!");
+    if(rot == null) {
+      return new String[0];
+    }
+    else if(rot.venstre == null && rot.høyre == null) {
+      return new String[]{"[" + rot.verdi.toString() + "]"};
+    }
+    String[] list = new String[antallBladNoder(rot)];
+    int[] number = new int[1];
+    number[0] = 0;
+    StringBuilder builder = new StringBuilder();
+    gå(rot, list, number);
+    return list;
   }
-  
+
   public String bladnodeverdier()
   {
-    throw new UnsupportedOperationException("Ikke kodet ennå!");
+    if(rot == null)
+      return "[]";
+    if(antall == 1)
+      return "[" + rot.verdi + "]";
+    StringBuilder builder = new StringBuilder();
+    builder.append(finnBladNodeVerdier(rot));
+    builder.reverse();
+    builder.deleteCharAt(0);
+    builder.deleteCharAt(0);
+    builder.append("[");
+    builder.reverse();
+    builder.append("]");
+    return builder.toString();
+  }
+
+  private String finnBladNodeVerdier(Node<T> node) {
+    if(node == null) {
+      return "";
+    }
+    else if(node.venstre == null && node.høyre == null) {
+      return node.verdi + ", ";
+    }
+    else {
+      return finnBladNodeVerdier(node.venstre) + finnBladNodeVerdier(node.høyre);
+    }
   }
   
   public String postString()
   {
-    throw new UnsupportedOperationException("Ikke kodet ennå!");
+    if(rot == null) {
+      return "[]";
+    }
+    if(antall == 1) {
+      return "[" + rot.verdi + "]";
+    }
+    StringBuilder builder = new StringBuilder();
+    builder.append("[");
+    Node<T> current = rot;
+    Stakk<Node<T>> stakk = new TabellStakk<>();
+    do {
+      while (current != null) {
+        if(current.høyre != null) {
+          stakk.leggInn(current.høyre);
+        }
+        stakk.leggInn(current);
+        current = current.venstre;
+      }
+      current = stakk.taUt();
+      if(current.høyre != null && !stakk.tom() && current.høyre == stakk.kikk()) {
+        stakk.taUt();
+        stakk.leggInn(current);
+        current = current.høyre;
+      } else {
+        builder.append(", " + current.verdi);
+        current = null;
+      }
+    } while(!stakk.tom());
+    builder.deleteCharAt(1);
+    builder.deleteCharAt(1);
+    builder.append("]");
+
+    return builder.toString();
   }
   
   @Override
@@ -322,10 +491,14 @@ public class ObligSBinTre<T> implements Beholder<T>
     private Node<T> p = rot, q = null;
     private boolean removeOK = false;
     private int iteratorendringer = endringer;
+    private Kø<Node<T>> kø = new TabellKø<>();
     
     private BladnodeIterator()  // konstruktør
     {
-      throw new UnsupportedOperationException("Ikke kodet ennå!");
+      if(antall > 0) {
+        settOppListe(rot);
+        p = kø.taUt();
+      }
     }
     
     @Override
@@ -333,17 +506,58 @@ public class ObligSBinTre<T> implements Beholder<T>
     {
       return p != null;  // Denne skal ikke endres!
     }
+
+    private void settOppListe(Node<T> node) {
+      if(node == null)
+        return;
+      if(node.venstre == null && node.høyre == null)
+        kø.leggInn(node);
+      else {
+        settOppListe(node.venstre);
+        settOppListe(node.høyre);
+      }
+    }
     
     @Override
     public T next()
     {
-      throw new UnsupportedOperationException("Ikke kodet ennå!");
+      if(!hasNext()) throw new NoSuchElementException();
+
+      if(iteratorendringer != endringer) throw new ConcurrentModificationException();
+      q = p;
+      if(kø.tom()) p = null;
+      else p = kø.taUt();
+      removeOK= true;
+      return q.verdi;
+
     }
     
     @Override
     public void remove()
     {
-      throw new UnsupportedOperationException("Ikke kodet ennå!");
+      if(!removeOK) throw new IllegalStateException();
+      if(antall == 1) {
+        antall--;
+        iteratorendringer++;
+        endringer++;
+        q = null;
+        p = null;
+        return;
+      }
+      if(q.equals(q.forelder.høyre)) {
+        q.forelder.høyre = null;
+      }
+      else if(q.equals(q.forelder.venstre)) {
+        q.forelder.venstre = null;
+      }
+      q = p;
+      if(kø.tom()) p = null;
+      else p = kø.taUt();
+
+      iteratorendringer++;
+      endringer++;
+      antall--;
+      removeOK = false;
     }
 
   } // BladnodeIterator
