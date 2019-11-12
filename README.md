@@ -10,6 +10,6 @@ Oppgaven er levert av følgende studenter:
 
 I oppgaven har vi hatt følgende arbeidsfordeling:
 * Eirik har gjort oppgave 0,1,2,3,4,5
-* Ole har gjordt oppgave 
+* Ole har gjordt oppgave 6, 7, 8, 9, 10
 * Siri har gjort oppgave 
 
