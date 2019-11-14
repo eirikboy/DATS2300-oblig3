@@ -535,29 +535,24 @@ public class ObligSBinTre<T> implements Beholder<T>
     @Override
     public void remove()
     {
+
       if(!removeOK) throw new IllegalStateException();
-      if(antall == 1) {
-        antall--;
-        iteratorendringer++;
-        endringer++;
-        q = null;
-        p = null;
-        return;
+
+      if(q == rot){
+          rot = null;
       }
-      if(q.equals(q.forelder.høyre)) {
-        q.forelder.høyre = null;
+      else if(q.forelder.venstre == q){
+          q.forelder.venstre = null;
       }
-      else if(q.equals(q.forelder.venstre)) {
-        q.forelder.venstre = null;
+      else  if(q.forelder.høyre == q){
+          q.forelder.høyre = null;
       }
-      q = p;
-      if(kø.tom()) p = null;
-      else p = kø.taUt();
+      removeOK = false;
 
       iteratorendringer++;
       endringer++;
       antall--;
-      removeOK = false;
+
     }
 
   } // BladnodeIterator
